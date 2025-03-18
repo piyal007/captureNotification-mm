@@ -7,6 +7,10 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 class MessengerNotificationListener : NotificationListenerService() {
 
@@ -30,12 +34,18 @@ class MessengerNotificationListener : NotificationListenerService() {
                 val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
                 val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
 
-                Log.d(TAG, "Messenger notification: $title - $text")
+                // Get current timestamp in Bangladesh time zone with 12-hour format
+                val sdf = SimpleDateFormat("MM/dd hh:mm a", Locale.getDefault())
+                sdf.timeZone = TimeZone.getTimeZone("Asia/Dhaka")
+                val timestamp = sdf.format(Date())
 
-                // Broadcast the captured notification
+                Log.d(TAG, "Messenger notification at $timestamp: $title - $text")
+
+                // Broadcast the captured notification with timestamp
                 val intent = Intent("com.example.notificationcapture.NOTIFICATION_RECEIVED")
                 intent.putExtra("notification_text", text)
                 intent.putExtra("notification_sender", title)
+                intent.putExtra("notification_time", timestamp)
                 LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
             }
         } catch (e: Exception) {

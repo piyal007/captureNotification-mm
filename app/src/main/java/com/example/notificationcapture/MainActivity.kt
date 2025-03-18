@@ -11,6 +11,10 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
+import android.graphics.Typeface
+import android.text.SpannableString
+import android.text.style.RelativeSizeSpan
+import android.text.style.StyleSpan
 import android.util.Log
 
 class MainActivity : AppCompatActivity() {
@@ -27,9 +31,17 @@ class MainActivity : AppCompatActivity() {
                 if (intent?.action == "com.example.notificationcapture.NOTIFICATION_RECEIVED") {
                     val message = intent.getStringExtra("notification_text") ?: "No text"
                     val sender = intent.getStringExtra("notification_sender") ?: "Unknown"
+                    val time = intent.getStringExtra("notification_time") ?: ""
 
                     runOnUiThread {
-                        notificationText.append("\n\nFrom: $sender\nMessage: $message")
+                        // Create a spannable string to show time in smaller text
+                        val timeSpan = SpannableString(" $time")
+                        timeSpan.setSpan(RelativeSizeSpan(0.7f), 0, timeSpan.length, 0)
+                        timeSpan.setSpan(StyleSpan(Typeface.ITALIC), 0, timeSpan.length, 0)
+
+                        notificationText.append("\n\nFrom: $sender")
+                        notificationText.append(timeSpan)
+                        notificationText.append("\nMessage: $message")
                     }
                 }
             } catch (e: Exception) {
@@ -73,6 +85,12 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error in onCreate", e)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Ensure the service is running
+        toggleNotificationListenerService()
     }
 
     override fun onDestroy() {
